@@ -1,62 +1,49 @@
-import { renderHook } from "@testing-library/react-hooks";
-import axios from "axios";
 import useFetch from "../../hooks/useFetch";
-import { act } from "react-dom/test-utils";
+import { renderHook, act } from "@testing-library/react-hooks";
+import axios from "axios";
 
+// Mock axios to control its behavior in the tests
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("useFetch", () => {
-  test("should return data after fetching", async () => {
-    const mockData = { name: "John Doe" };
-    mockedAxios.get.mockResolvedValue({ data: mockData });
+  it("should return loading as true initially", async () => {
+    const { result } = renderHook(() => useFetch("http://example.com/api"));
 
-    const { result, waitForNextUpdate } = renderHook(() => useFetch("/user"));
-
-    // Initial state
     expect(result.current.loading).toBe(true);
     expect(result.current.data).toBeNull();
     expect(result.current.error).toBeNull();
+  });
 
+  it("should fetch data successfully", async () => {
+    const mockData = { id: 1, name: "John Doe" };
+    mockedAxios.get.mockResolvedValueOnce({ data: mockData });
+
+    const { result, waitForNextUpdate } = renderHook(() =>
+      useFetch("http://example.com/api")
+    );
+
+    // Wait for the hook to update after fetching data
     await waitForNextUpdate();
 
-    // After fetch
     expect(result.current.loading).toBe(false);
     expect(result.current.data).toEqual(mockData);
     expect(result.current.error).toBeNull();
   });
 
-  test("should handle error", async () => {
-    mockedAxios.get.mockRejectedValue(new Error("Network error"));
+  it("should handle errors", async () => {
+    const mockError = "Network Error";
+    mockedAxios.get.mockRejectedValueOnce(new Error(mockError));
 
-    const { result, waitForNextUpdate } = renderHook(() => useFetch("/user"));
+    const { result, waitForNextUpdate } = renderHook(() =>
+      useFetch("http://example.com/api")
+    );
 
+    // Wait for the hook to update after fetching data
     await waitForNextUpdate();
 
     expect(result.current.loading).toBe(false);
     expect(result.current.data).toBeNull();
-    expect(result.current.error).toBe("Network error");
+    expect(result.current.error).toBe(mockError);
   });
-
-  // test("should fetch data only once on URL change", async () => {
-  //   const mockData = { name: "Jane Doe" };
-  //   mockedAxios.get.mockResolvedValue({ data: mockData });
-
-  //   const { result, rerender, waitForNextUpdate } = renderHook(
-  //     ({ url }) => useFetch(url),
-  //     {
-  //       initialProps: { url: "/user1" },
-  //     }
-  //   );
-
-  //   await waitForNextUpdate();
-
-  //   expect(result.current.data).toEqual(mockData);
-
-  //   // Change URL and fetch again
-  //   rerender({ url: "/user2" });
-  //   await waitForNextUpdate();
-
-  //   expect(result.current.data).toEqual(mockData);
-  // });
 });
