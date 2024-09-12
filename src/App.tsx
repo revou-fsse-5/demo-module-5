@@ -1,19 +1,18 @@
-import React, { useState } from "react";
-import "./App.css";
-import Counter from "./component/Counter";
+import React from "react";
+import { CounterProvider } from "./context/CounterContext";
+import Counter from "./components/Counter";
+import CounterControls from "./components/CounterControls";
 
-function App() {
-  const [count, setCount] = useState(0);
-
+const App: React.FC = () => {
   return (
-    <div>
-      <Counter />
-      {/* <h1>Counter App</h1>
-      <p data-testid="count">Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-      <button onClick={() => setCount(count - 1)}>Decrement</button> */}
-    </div>
+    <CounterProvider>
+      <div>
+        <h1>React Context with TypeScript Demo</h1>
+        <Counter />
+        <CounterControls />
+      </div>
+    </CounterProvider>
   );
-}
+};
 
 export default App;
